@@ -1,9 +1,8 @@
 # CEFR-Based Sentence-Difficulty Annotation and Assessment
 
-CEFR-SP provides 17k English sentences annotated with CEFR levels assigned by English-education professionals. 
+This directory contains codes to replicate our CEFR-level assessment model described in (Arase et al. 2022).
 
-The CEFR-SP corpus is in `/CEFR-SP` and our codes for CEFR-level assessment model are in `/src` directories.  
-Please refer to README of each directory for details.
+(Will be updated shortly. 2022/10/13)
 
 ## Citation
 Please cite the following paper if you use the above resources for your research.
@@ -20,6 +19,3 @@ Please cite the following paper if you use the above resources for your research
 }
  ```
 
-## Contact
-Yuki Arase (arase [at] ist.osaka-u.ac.jp) 
--- please replace " [at] " with an "@" symbol.
