@@ -2,7 +2,7 @@
 
 CEFR-SP provides 17k English sentences annotated with CEFR levels assigned by English-education professionals. 
 
-The CEFR-SP corpus is in `/CEFR-SP` and our codes for CEFR-level assessment model are in `/src` directories.  
+The CEFR-SP corpus is in `/CEFR-SP` directory and our codes for CEFR-level assessment model are in `/src` directory.  
 Please refer to README of each directory for details.
 
 ## Citation
