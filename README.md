@@ -1,4 +1,4 @@
-# CEFR-Based Sentence-Difficulty Annotation and Assessment
+# CEFR-Based Sentence Difficulty Annotation and Assessment
 
 CEFR-SP provides 17k English sentences annotated with CEFR levels assigned by English-education professionals. 
 

@@ -1,4 +1,4 @@
-# CEFR-Based Sentence-Difficulty Annotation and Assessment
+# CEFR-Based Sentence Difficulty Annotation and Assessment
 
 This directory contains codes to replicate our CEFR-level assessment model described in (Arase et al. 2022).
 
