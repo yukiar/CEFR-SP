@@ -56,23 +56,8 @@ class LevelEstimaterBase(pl.LightningModule):
         return torch.Tensor(train_sentlv_weights)
 
     def encode(self, batch):
-        if self.with_ib:
-            self.lm.eval()
-            with torch.no_grad():
-                outputs = self.lm(batch['input_ids'], attention_mask=batch['attention_mask'], output_hidden_states=True)
-
-            # Information bottleneck to each token
-            token_embeddings = token_embeddings_filtering_padding(outputs.hidden_states[self.lm_layer],
-                                                                  attention_mask=batch['attention_mask'])
-            outputs_ib, information_loss = self.ib(token_embeddings)
-
-            # # Mean-pooling -> Information bottleneck
-            # outputs_mean = mean_pooling(outputs.hidden_states[self.lm_layer], attention_mask=batch['attention_mask'])
-            # outputs_ib, information_loss = self.ib(outputs_mean)
-            return outputs_ib, information_loss
-        else:
-            outputs = self.lm(batch['input_ids'], attention_mask=batch['attention_mask'], output_hidden_states=True)
-            return outputs.hidden_states[self.lm_layer], None
+        outputs = self.lm(batch['input_ids'], attention_mask=batch['attention_mask'], output_hidden_states=True)
+        return outputs.hidden_states[self.lm_layer], None
 
     def forward(self, inputs):
         pass
@@ -105,13 +90,6 @@ class LevelEstimaterBase(pl.LightningModule):
         gold_labels_high = np.array(gold_labels_high)
         gold_labels_low = np.array(gold_labels_low)
         pred_labels = np.array(pred_labels)
-
-        # # random pick low and high labels
-        # choice = np.random.randint(2, size=gold_labels_low.size).reshape(gold_labels_low.shape).astype(bool)
-        # gold_labels = np.where(choice, gold_labels_low, gold_labels_high)
-        # # allow low/high labels if prediction corresponds to either of them
-        # gold_labels[pred_labels == gold_labels_low] = gold_labels_low[pred_labels == gold_labels_low]
-        # gold_labels[pred_labels == gold_labels_high] = gold_labels_high[pred_labels == gold_labels_high]
 
         # pick higher or lower labels that the model performs better
         gold_labels = self.get_gold_labels(torch.from_numpy(pred_labels), torch.from_numpy(gold_labels_low),

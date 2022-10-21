@@ -58,12 +58,8 @@ class LevelEstimaterClassification(LevelEstimaterBase):
                                               inputs['slabels_high'].detach().clone())
                 cls_loss = self.loss_fct(logits.view(-1, self.CEFR_lvs), labels.view(-1))
 
-            if self.with_ib:
-                loss = cls_loss.div(np.log(2)) + self.ib_beta * information_loss
-                logs = {"loss": loss, "information_loss": information_loss, "classification_loss": cls_loss}
-            else:
-                loss = cls_loss
-                logs = {"loss": cls_loss}
+            loss = cls_loss
+            logs = {"loss": cls_loss}
 
         predictions = predictions.cpu().numpy()
 
@@ -161,14 +157,8 @@ class LevelEstimaterContrastive(LevelEstimaterBase):
             # cross-entropy loss
             cls_loss = self.loss_fct(logits.view(-1, self.CEFR_lvs), labels.view(-1))
 
-            if self.with_ib:
-                # total loss
-                loss = cls_loss.div(np.log(2)) + self.ib_beta * information_loss
-                logs = {"loss": loss, "classification_loss": cls_loss,
-                        "information_loss": information_loss}
-            else:
-                loss = cls_loss
-                logs = {"loss": loss}
+            loss = cls_loss
+            logs = {"loss": loss}
 
         predictions = predictions.cpu().numpy()
 
