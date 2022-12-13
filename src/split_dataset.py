@@ -8,7 +8,7 @@ import tqdm
 
 def read_cefr_corpus(corpus_path):
     levels, sents = [], []
-    lv_indices = {0: [], 1: [], 2: [], 3: [], 4: [], 5: []}
+    lv_indices = {0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6:[], 7:[], 8:[]}
     with open(corpus_path) as f:
         all_texts = f.readlines()
     for line in all_texts[1:]:  # skip the header

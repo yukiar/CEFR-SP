@@ -2,7 +2,7 @@ import torch, random, itertools, tqdm
 import numpy as np
 from torch import nn
 from torch.utils.data import DataLoader
-from util import mean_pooling, read_corpus, CEFRDataset, convert_numeral_to_six_levels
+from util import mean_pooling, read_corpus, CEFRDataset, convert_numeral_to_eight_levels
 from model_base import LevelEstimaterBase
 
 
@@ -14,11 +14,12 @@ class LevelEstimaterClassification(LevelEstimaterBase):
                  batch_size,
                  learning_rate,
                  warmup,
-                 lm_layer):
+                 lm_layer,
+                 args):
         super().__init__(corpus_path, test_corpus_path, pretrained_model, with_ib, attach_wlv, num_labels,
                          word_num_labels, alpha,
                          batch_size,
-                         learning_rate, warmup, lm_layer)
+                         learning_rate, warmup, lm_layer, args)
         self.save_hyperparameters()
 
         self.problem_type = problem_type
@@ -44,7 +45,7 @@ class LevelEstimaterClassification(LevelEstimaterBase):
         logits = self.slv_classifier(self.dropout(outputs))
 
         if self.problem_type == "regression":
-            predictions = convert_numeral_to_six_levels(logits.detach().clone().cpu().numpy())
+            predictions = convert_numeral_to_eight_levels(logits.detach().clone().cpu().numpy())
         else:
             predictions = torch.argmax(torch.softmax(logits.detach().clone(), dim=1), dim=1, keepdim=True)
 
@@ -113,11 +114,12 @@ class LevelEstimaterContrastive(LevelEstimaterBase):
                  batch_size,
                  learning_rate,
                  warmup,
-                 lm_layer):
+                 lm_layer,
+                 args):
         super().__init__(corpus_path, test_corpus_path, pretrained_model, with_ib, attach_wlv, num_labels,
                          word_num_labels, alpha,
                          batch_size,
-                         learning_rate, warmup, lm_layer)
+                         learning_rate, warmup, lm_layer, args)
         self.save_hyperparameters()
 
         self.problem_type = problem_type

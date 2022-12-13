@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from torch import nn
-from util import mean_pooling, convert_numeral_to_six_levels
+from util import mean_pooling, convert_numeral_to_eight_levels
 from model_base import LevelEstimaterBase
 
 
@@ -11,11 +11,12 @@ class BaselineClassification(LevelEstimaterBase):
                  batch_size,
                  learning_rate,
                  warmup,
-                 lm_layer):
+                 lm_layer,
+                 args):
         super().__init__(corpus_path, test_corpus_path, pretrained_model, False, attach_wlv, num_labels,
                          word_num_labels, alpha,
                          batch_size,
-                         learning_rate, warmup, lm_layer)
+                         learning_rate, warmup, lm_layer, args)
         self.save_hyperparameters()
 
         self.problem_type = problem_type
@@ -45,7 +46,7 @@ class BaselineClassification(LevelEstimaterBase):
             logs = {"loss": loss}
 
         if self.problem_type == "regression":
-            predictions = convert_numeral_to_six_levels(logits.cpu().detach().clone().numpy())
+            predictions = convert_numeral_to_eight_levels(logits.cpu().detach().clone().numpy())
         else:
             predictions = torch.argmax(torch.softmax(logits.detach().clone(), dim=1), dim=1, keepdim=True).cpu().numpy()
 

@@ -9,7 +9,7 @@ from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import TensorBoardLogger
 import numpy as np
-from util import eval_multiclass, read_corpus, convert_numeral_to_six_levels
+from util import eval_multiclass, read_corpus, convert_numeral_to_eight_levels
 from model import LevelEstimaterClassification, LevelEstimaterContrastive
 from baseline import BaselineClassification
 from model_base import CEFRDataset
@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser(description='CEFR level estimator.')
 parser.add_argument('--out', help='output directory', type=str, default='../out/')
 parser.add_argument('--data', help='dataset', type=str, required=True)
 parser.add_argument('--test', help='dataset', type=str, required=True)
+parser.add_argument('--fold_type', help='fold_type', type=str, required=True)
 parser.add_argument('--num_labels', help='number of attention heads', type=int, default=6)
 parser.add_argument('--alpha', help='weighing factor', type=float, default=0.2)
 parser.add_argument('--num_prototypes', help='number of prototypes', type=int, default=3)
@@ -26,6 +27,7 @@ parser.add_argument('--pretrained', help='Pretrained level estimater', type=str,
 parser.add_argument('--type', help='Level estimater type', type=str, required=True,
                     choices=['baseline_reg', 'baseline_cls', 'regression', 'classification', 'contrastive'])
 parser.add_argument('--with_loss_weight', action='store_true')
+parser.add_argument('--do_lower_case', action='store_true')
 parser.add_argument('--lm_layer', help='number of attention heads', type=int, default=-1)
 parser.add_argument('--batch', help='Batch size', type=int, default=128)
 parser.add_argument('--seed', help='number of attention heads', type=int, default=42)
@@ -36,6 +38,8 @@ parser.add_argument('--warmup', help='warmup steps', type=int, default=0)
 parser.add_argument('--beta', help='balance between sentence and word loss', type=float, default=0.5)
 parser.add_argument('--ib_beta', help='beta for information bottleneck', type=float, default=1e-5)
 parser.add_argument('--word_num_labels', help='number of attention heads', type=int, default=4)
+parser.add_argument('--CEFR_lvs', help='number of CEFR levels', type=int, default=8)
+parser.add_argument('--score_name', help='score_name for predict and train', type=str, default="vocabulary")
 parser.add_argument('--with_ib', action='store_true')
 parser.add_argument('--attach_wlv', action='store_true')
 ####################################################################
@@ -54,22 +58,23 @@ if __name__ == '__main__':
         save_dir += '_num_prototypes' + str(args.num_prototypes)
 
     save_dir += '_' + args.model.replace('../pretrained_model/', '').replace('/', '')
+    save_dir = os.path.join(save_dir, args.fold_type)
     logger = TensorBoardLogger(save_dir=args.out, name=save_dir)
 
     # saves a file like: my/path/sample-mnist-epoch=02-val_loss=0.32.ckpt
     checkpoint_callback = ModelCheckpoint(
-        monitor="val_score",
-        filename="level_estimator-{epoch:02d}-{val_score:.6f}",
+        monitor="train_loss",
+        filename="level_estimator-{epoch:02d}-{train_loss:.6f}",
         save_top_k=1,
-        mode="max",
+        mode="min",
     )
     # Early stopping callback
     early_stop_callback = EarlyStopping(
-        monitor='val_score',
+        monitor='train_loss',
         min_delta=1e-5,
         patience=10,
         verbose=False,
-        mode='max'
+        mode='min'
     )
     # swa_callback = StochasticWeightAveraging(swa_epoch_start=3)
     lr_monitor = LearningRateMonitor(logging_interval='step')
@@ -82,7 +87,8 @@ if __name__ == '__main__':
                                               args.batch,
                                               args.init_lr,
                                               args.warmup,
-                                              args.lm_layer)
+                                              args.lm_layer,
+                                              args)
 
     elif args.type in ['regression', 'classification']:
         if args.pretrained is not None:
@@ -98,7 +104,7 @@ if __name__ == '__main__':
                                                                              batch_size=args.batch,
                                                                              learning_rate=args.init_lr,
                                                                              warmup=args.warmup,
-                                                                             lm_layer=args.lm_layer)
+                                                                             lm_layer=args.lm_layer, args=args)
 
         lv_estimater = LevelEstimaterClassification(args.data, args.test, args.model, args.type, args.with_ib,
                                                     args.with_loss_weight, args.attach_wlv,
@@ -107,7 +113,7 @@ if __name__ == '__main__':
                                                     args.alpha, args.ib_beta, args.batch,
                                                     args.init_lr,
                                                     args.warmup,
-                                                    args.lm_layer)
+                                                    args.lm_layer, args)
 
     elif args.type == 'contrastive':
         if args.pretrained is not None:
@@ -123,7 +129,7 @@ if __name__ == '__main__':
                                                                           alpha=args.alpha, ib_beta=args.ib_beta,
                                                                           batch_size=args.batch,
                                                                           learning_rate=args.init_lr,
-                                                                          warmup=args.warmup, lm_layer=args.lm_layer)
+                                                                          warmup=args.warmup, lm_layer=args.lm_layer, args=args)
 
         lv_estimater = LevelEstimaterContrastive(args.data, args.test, args.model, args.type, args.with_ib,
                                                  args.with_loss_weight, args.attach_wlv,
@@ -133,7 +139,7 @@ if __name__ == '__main__':
                                                  args.alpha, args.ib_beta, args.batch,
                                                  args.init_lr,
                                                  args.warmup,
-                                                 args.lm_layer)
+                                                 args.lm_layer, args)
 
     if args.pretrained is not None:
         trainer = pl.Trainer(gpus=gpus, logger=logger)
