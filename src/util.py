@@ -5,6 +5,8 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import classification_report
 import seaborn as sns
 import matplotlib.pyplot as plt
+import csv
+import sys
 
 class TextDataset(torch.utils.data.Dataset):
     def __init__(self, encodings):
@@ -45,23 +47,38 @@ class ConcatDataset(torch.utils.data.Dataset):
         return min(len(d) for d in self.datasets)
 
 
-def read_corpus(path, num_labels):
+def read_corpus(path, num_labels, score_name):
     levels_a, levels_b, sents = [], [], []
-    with open(path) as f:
-        for line in f:
-            array = line.strip().split('\t')
-            sents.append(array[0].split(' '))
-            levels_a.append(float(array[1]) - 1)  # Convert 1-6 to 0-5
-            levels_b.append(float(array[2]) - 1)  # Convert 1-6 to 0-5
+    lines = _read_tsv(path)
+    for i, line in enumerate(lines):
+        if i == 0:
+            columns = {key:header_index for header_index, key in enumerate(line)}
+            continue
+        
+        sents.append(line[columns['text']].split())
+        levels_a.append(float(line[columns[score_name]]) - 1)  # Convert 1-8 to 0-7
+        levels_b.append(float(line[columns[score_name]]) - 1)  # Convert 1-8 to 0-7
 
     levels_a = np.array(levels_a)
     levels_b = np.array(levels_b)
 
     return levels_a, levels_b, sents
 
+def _read_tsv(input_file, quotechar=None):
+    print(input_file)
+    """Reads a tab separated value file."""
+    with open(input_file, "r", encoding="utf-8-sig") as f:
+        reader = csv.reader(f, delimiter="\t", quotechar=quotechar)
+        lines = []
+        for line in reader:
+            if sys.version_info[0] == 2:
+                line = list(unicode(cell, 'utf-8') for cell in line)
+            lines.append(line)
+        return lines
 
-def convert_numeral_to_six_levels(levels):
-    level_thresholds = np.array([0.0, 0.5, 1.5, 2.5, 3.5, 4.5])
+
+def convert_numeral_to_eight_levels(levels):
+    level_thresholds = np.array([0.0, 0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5])
     return _conversion(level_thresholds, levels)
 
 
@@ -95,6 +112,7 @@ def eval_multiclass(out_path, labels, predictions):
     print(report)
     with open(out_path + '_test_report.txt', 'w') as fw:
         fw.write('{0}\n'.format(report))
+    
 
 
 def mean_confidence_interval(data, confidence=0.95):
