@@ -36,8 +36,8 @@ class LevelEstimaterBase(pl.LightningModule):
         self.lm_layer = lm_layer
         self.score_name = args.score_name
         self.do_lower_case = args.do_lower_case
-        self.max_seq_length = 450
-        self.special_tokens_count = 0
+        self.max_seq_length = args.max_seq_length
+        self.special_tokens_count = 2
 
         # Load pre-trained model
         self.load_pretrained_lm()
@@ -164,20 +164,17 @@ class LevelEstimaterBase(pl.LightningModule):
         special_tokens_count = self.special_tokens_count
         
         for sent_idx, sent in enumerate(sents):
-            tokens = sent
-            #tokens = []
-            #for i, word in enumerate(sent.split()):
-            #    if len(tokens) >= max_seq_length - special_tokens_count:
-            #        break
-            #    word_pieces = self.tokenizer.tokenize(word)
-            #    tokens.extend(word_pieces)
-            #    
+            tokens = []
+            for i, word in enumerate(sent):
+                if len(tokens) >= max_seq_length - special_tokens_count:
+                    break
+                word_pieces = self.tokenizer.tokenize(word)
+                tokens.extend(word_pieces)
+                
             if len(tokens) > max_seq_length - special_tokens_count:
                 tokens = tokens[:(max_seq_length - special_tokens_count)]
-            else:
-                continue
             
-            sents[sent_idx] = tokens
+            sents[sent_idx] = self.tokenizer.convert_tokens_to_string(tokens).split()
         
         inputs = self.tokenizer(sents, return_tensors="pt", padding=True,
                                 is_split_into_words=True,
