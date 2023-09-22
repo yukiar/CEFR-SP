@@ -1,4 +1,4 @@
-transformers
-tokenizers
+transformers==4.29.2
+tokenizers==0.13.3
 pytorch-lightning==1.5.3
-tensorboard
+tensorboard==2.11.2
