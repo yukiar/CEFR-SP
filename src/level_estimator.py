@@ -99,8 +99,8 @@ if __name__ == '__main__':
                                                                              learning_rate=args.init_lr,
                                                                              warmup=args.warmup,
                                                                              lm_layer=args.lm_layer)
-
-        lv_estimater = LevelEstimaterClassification(args.data, args.test, args.model, args.type, args.with_ib,
+        else:
+          lv_estimater = LevelEstimaterClassification(args.data, args.test, args.model, args.type, args.with_ib,
                                                     args.with_loss_weight, args.attach_wlv,
                                                     args.num_labels,
                                                     args.word_num_labels,
@@ -124,8 +124,8 @@ if __name__ == '__main__':
                                                                           batch_size=args.batch,
                                                                           learning_rate=args.init_lr,
                                                                           warmup=args.warmup, lm_layer=args.lm_layer)
-
-        lv_estimater = LevelEstimaterContrastive(args.data, args.test, args.model, args.type, args.with_ib,
+        else:
+          lv_estimater = LevelEstimaterContrastive(args.data, args.test, args.model, args.type, args.with_ib,
                                                  args.with_loss_weight, args.attach_wlv,
                                                  args.num_labels,
                                                  args.word_num_labels,
